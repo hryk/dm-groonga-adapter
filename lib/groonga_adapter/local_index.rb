@@ -13,16 +13,37 @@ module DataMapper
       def add(table_name, doc)
         return unless exist_table(table_name)
         table = table(table_name)
+        doc_id = doc.delete(:id)
+        record = table.add(doc_id)
+        record['_id'] = doc_id
+        doc.each do |k, v|;record[k] = v;end
       end
 
       def delete(query)
       end
+      # table_name : String
+      # grn_query  : String (e.g., "title:@foovar"
+      # grn_sort   : [{:key => "_id", :order => :asc }]
+      def search(table_name, grn_query, grn_sort=[], options={})
+        table = @tables[table_name]
+        table = @tables[table_name].select(grn_query, options) unless grn_query.empty?
 
-      def search(query, options)
+        if grn_sort.empty?
+          grn_sort << {:key => "_id", :order => :asc }
+        end
 
+        table.sort(grn_sort)
       end
 
-#      def [](id)
+#      def search(query, options={}) # <- DataMapper::Query
+#        table_name = query.model.name
+#        table = @tables[table_name]
+#        # create and execute grn query (where statement) OR select all record (ta)
+#        unless query.conditions.operands.empty?
+#          table = @tables[table_name].select(create_grn_query(query), options)
+#        end
+#        # limit , order, offset.
+#        table.sort(create_grn_sort(query))
 #      end
 
       def exist_table(table_name)
@@ -47,6 +68,11 @@ module DataMapper
           :persistent => true,
           :key_type   => Groonga::Type::UINT64
         )
+
+        # add _id column (for default sort key.)
+        @tables[table_name].define_column('_id', Groonga::Type::UINT64)
+
+        # add columns
         properties.each do |prop|
           type = trans_type(prop.type)
           propname = prop.name.to_s

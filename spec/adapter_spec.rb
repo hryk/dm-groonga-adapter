@@ -24,18 +24,14 @@ describe DataMapper::Adapters::GroongaAdapter do
     end
   end
 
-#  after do
-#    FileUtils.rm_r(INDEX_PATH)
-#  end
-
   it 'should work with a model using id' do
     u = User.create(:id => 2)
-    repository.search('*').should == { User => %w[ 2 ] }
+    repository.search(User, '').should == { User => [ 2 ] }
   end
 
   it 'should work with a model using another key than id' do
     p = Photo.create
-    repository.search('*').should == { Photo => [p.uuid] }
+    repository.search(Photo, '').should == { Photo => [p.uuid] }
   end
 
   it 'should allow lookups using Model#get' do
