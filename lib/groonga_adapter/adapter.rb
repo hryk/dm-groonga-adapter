@@ -19,15 +19,21 @@ module DataMapper
       end
 
       def create(resources)
+        name = self.name
+
         resources.each do |resource|
+          model = resource.model
           attributes = resource.attributes(:field).to_mash
 
           # Since we don't inspect the models before generating the indices,
           # we'll map the resource's key to the :id column.
           attributes[:id]    ||= resource.key.first
-          attributes[:_type]   = resource.model.name
+          attributes[:_type]   = model.name
 
-          @database.create_table(resource.model) unless @database.exist_table resource.model.name
+          unless @database.exist_table resource.model.name
+            @database.create_table(model.name,
+                                   model.properties(name))
+          end
 
           @database.add resource.model.name, attributes
         end
@@ -58,6 +64,8 @@ module DataMapper
         end
         results
       end
+
+      private
 
     end # DataMapper::Adapters::GroongaAdapter
   end

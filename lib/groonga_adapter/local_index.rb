@@ -7,6 +7,7 @@ module DataMapper
         @options = options
         create_or_init_database
         @tables = Mash.new
+        create_or_init_term_table
       end
 
       def add(table_name, doc)
@@ -18,7 +19,7 @@ module DataMapper
       end
 
       def search(query, options)
-        []
+
       end
 
 #      def [](id)
@@ -40,15 +41,54 @@ module DataMapper
         @tables[table_name] = Groonga::Hash.open(:name => table_name)
       end
 
-      def create_table(model)
-        @tables[model.name] = Groonga::Hash.create(
-          :name       => model.name,
+      def create_table(table_name, properties)
+        @tables[table_name] = Groonga::Hash.create(
+          :name       => table_name,
           :persistent => true,
           :key_type   => Groonga::Type::UINT64
         )
+        properties.each do |prop|
+          type = trans_type(prop.type)
+          propname = prop.name.to_s
+          @tables[table_name].define_column(propname, type)
+          if type == "ShortText" || type == "Text"
+            index_column = add_term(table_name, propname)
+          end
+        end
       end
 
       private
+
+      def add_term(table, prop)
+        @tables['_terms'].define_index_column(
+          "#{table}_#{prop}", @tables[table],
+          :source => "#{table}.#{prop}"
+        )
+      end
+
+      # translate DataMapper::Property::TYPES to Groonga::Type
+      def trans_type(dmtype)
+        case dmtype.to_s
+        when 'String'
+          "ShortText"
+        when 'Text'
+          "Text"
+        when 'Float'
+          "Float"
+        when 'Bool'
+          "Bool"
+        when 'Integer'
+          "Int32"
+        when 'BigDecimal'
+          "Int64"
+        when 'Serial'
+          "Int32"
+        when 'Time'
+          "Time"
+        else
+          "ShortText"
+        end
+      end
 
       def table(table_name)
         unless @tables.key? table_name
@@ -59,6 +99,17 @@ module DataMapper
           end
         end
         return @tables[table_name]
+      end
+
+      def create_or_init_term_table
+        unless exist_table('_terms')
+          @tables['_terms'] = Groonga::Hash.create(:name       => "_terms",
+                                                   :persistent => true,
+                                                   :key_type   => Groonga::Type::UINT64,
+                                                   :default_tokenizer => "TokenBigram")
+        else
+          open_table('_terms')
+        end
       end
 
       def create_or_init_database
