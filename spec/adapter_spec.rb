@@ -18,7 +18,7 @@ describe DataMapper::Adapters::GroongaAdapter do
     class ::Photo
       include DataMapper::Resource
 
-      property :id , Serial
+      property :uuid, String, :default => proc { UUIDTools::UUID.random_create }, :key => true
       property :happy, Boolean, :default => true
       property :description, String
     end
@@ -29,6 +29,7 @@ describe DataMapper::Adapters::GroongaAdapter do
     repository.search(User, '').should == { User => [ 2 ] }
   end
 
+  # TODO : use  UINT64 -> ShortText (UUID) as Key.
   it 'should work with a model using another key than id' do
     p = Photo.create
     repository.search(Photo, '').should == { Photo => [p.uuid] }

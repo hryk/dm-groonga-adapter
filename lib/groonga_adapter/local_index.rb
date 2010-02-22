@@ -16,7 +16,21 @@ module DataMapper
         doc_id = doc.delete(:id)
         record = table.add(doc_id)
         record['_id'] = doc_id
-        doc.each do |k, v|;record[k] = v;end
+        doc.each do |k, v|
+          begin
+            if record.have_column? k
+              record[k] = v
+            else
+              puts "column #{k} is not defined."
+            end
+            rescue => e
+            puts record.inspect
+            puts record.columns.inspect
+            puts k
+            puts v
+            raise e
+          end
+        end
       end
 
       def delete(query)
@@ -62,22 +76,23 @@ module DataMapper
         @tables[table_name] = Groonga::Hash.open(:name => table_name)
       end
 
-      def create_table(table_name, properties)
+      def create_table(table_name, properties, key_prop=nil)
+        key_type = (key_prop.nil?) ? Groonga::Type::UINT64 : trans_type(key_prop.type)
         @tables[table_name] = Groonga::Hash.create(
           :name       => table_name,
           :persistent => true,
-          :key_type   => Groonga::Type::UINT64
+          :key_type   => key_type
         )
 
         # add _id column (for default sort key.)
-        @tables[table_name].define_column('_id', Groonga::Type::UINT64)
+        @tables[table_name].define_column('_id', key_type)
 
         # add columns
         properties.each do |prop|
           type = trans_type(prop.type)
           propname = prop.name.to_s
-          @tables[table_name].define_column(propname, type)
-          if type == "ShortText" || type == "Text"
+          @tables[table_name].define_column(propname, type, {:persistent => true})
+          if type == "ShortText" || type == "Text" || type == "LongText"
             index_column = add_term(table_name, propname)
           end
         end
@@ -94,25 +109,33 @@ module DataMapper
 
       # translate DataMapper::Property::TYPES to Groonga::Type
       def trans_type(dmtype)
+        puts "TYPE-------- #{dmtype.to_s}"
         case dmtype.to_s
         when 'String'
-          "ShortText"
+          return Groonga::Type::SHORT_TEXT
         when 'Text'
-          "Text"
+          return Groonga::Type::TEXT
         when 'Float'
-          "Float"
+          return Groonga::Type::FLOAT
         when 'Bool'
-          "Bool"
+          return Groonga::Type::BOOL
+        when 'Boolean'
+          return Groonga::Type::BOOLEAN
         when 'Integer'
-          "Int32"
+          return Groonga::Type::INT32
         when 'BigDecimal'
-          "Int64"
-        when 'Serial'
-          "Int32"
+          return Groonga::Type::INT64
         when 'Time'
-          "Time"
+          return Groonga::Type::TIME
+        when /^DataMapper::Types::(.+)$/
+          case $1
+          when "Boolean"
+            return Groonga::Type::BOOL
+          when "Serial"
+            return Groonga::Type::UINT32
+          end
         else
-          "ShortText"
+          return Groonga::Type::SHORT_TEXT
         end
       end
 
@@ -154,6 +177,6 @@ module DataMapper
         end
       end
 
-    end
+   end
   end
 end

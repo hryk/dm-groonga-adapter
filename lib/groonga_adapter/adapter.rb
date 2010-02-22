@@ -29,10 +29,13 @@ module DataMapper
           # we'll map the resource's key to the :id column.
           attributes[:id]    ||= resource.key.first
           # attributes[:_type]   = model.name
-
+          # $stderr.puts resource.key.first.inspect
+          # $stderr.puts model.key.first.inspect
           unless @database.exist_table resource.model.name
             @database.create_table(model.name,
-                                   model.properties(name))
+                                   model.properties(name),
+                                   model.key.first # <- key attribute.
+                                  )
           end
 
           @database.add model.name, attributes

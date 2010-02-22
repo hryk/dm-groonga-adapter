@@ -1,4 +1,5 @@
 require 'rubygems'
+require 'uuidtools'
 require 'dm-core'
 require 'dm-is-searchable'
 
