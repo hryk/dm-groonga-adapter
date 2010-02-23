@@ -46,7 +46,7 @@ module DataMapper
           grn_sort << {:key => "_id", :order => :asc }
         end
 
-        table.sort(grn_sort)
+        table.sort(*grn_sort)
       end
 
 #      def search(query, options={}) # <- DataMapper::Query
@@ -109,7 +109,6 @@ module DataMapper
 
       # translate DataMapper::Property::TYPES to Groonga::Type
       def trans_type(dmtype)
-        puts "TYPE-------- #{dmtype.to_s}"
         case dmtype.to_s
         when 'String'
           return Groonga::Type::SHORT_TEXT

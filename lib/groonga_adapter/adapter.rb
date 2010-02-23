@@ -83,6 +83,11 @@ module DataMapper
       #     :near
       def search(model, groonga_query, groonga_sort=[], query_option={})
         results = {}
+        groonga_sort = unless groonga_sort.empty?
+                         groonga_sort
+                       else
+                         default_groonga_sort
+                       end
         @database.search(model.to_s, groonga_query, groonga_sort, query_option).each do |doc| 
           resources = results[Object.const_get(model.to_s)] ||= []
           resources << doc[:_id]
@@ -91,6 +96,10 @@ module DataMapper
       end
 
       private
+
+      def default_groonga_sort
+        [[{:key => '_id', :order => :asc}], { :limit => -1, :offset => 0}]
+      end
 
       def create_grn_query(query)
         conditions_statement(query.conditions)
