@@ -52,7 +52,10 @@ module DataMapper
                       ""
                     end
         grn_sort = create_grn_sort(query)
+        fields = query.fields
+        key    = query.model.key(name).first
         @database.search(table_name, grn_query, grn_sort).map do |lazy_doc|
+          puts lazy_doc.inspect
           fields.map { |p| [ p, p.typecast(lazy_doc[p.field]) ] }.to_hash.update(
             key.field => key.typecast(lazy_doc['_id'])
           )
@@ -166,7 +169,8 @@ module DataMapper
         # We use property.field here, so that you can declare composite
         # fields:
         #     property :content, String, :field => "title|description"
-        [ "#{comparison.subject.field}:", quote_value(value) ].join(operator)
+        grn_field = (comparison.subject.field.to_s == 'id') ? :_id : comparison.subject.field
+        [ "#{grn_field}:", quote_value(value) ].join(operator)
       end
 
       ## from dm-ferret-adapter ##
@@ -180,10 +184,15 @@ module DataMapper
           keys << {:key => '_id', :order => :asc}
         else
           query.order.each do |direction|
-            keys << { :key => direction.to_s, :order => direction.operator }
+            grn_field = (direction.target.name == :id) ? :_id : direction.target.name 
+            keys << { :key => grn_field.to_s, :order => direction.operator }
           end
         end
         [ keys, options ]
+      end
+
+      def quote_value(value)
+        return value
       end
 
     end # DataMapper::Adapters::GroongaAdapter
