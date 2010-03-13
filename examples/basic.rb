@@ -43,4 +43,3 @@ image = Image.create(:title => "Oil Rig");
 story = Story.create(:title => "Oil Rig", :author => "John Doe");
 
 puts Image.search(:title => "Oil Rig").inspect # => [<Image title="Oil Rig">]
-
