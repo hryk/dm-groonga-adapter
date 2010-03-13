@@ -54,12 +54,20 @@ module DataMapper
         grn_sort = create_grn_sort(query)
         fields = query.fields
         key    = query.model.key(name).first
+        # TODO : rewrite with each. not map.
         @database.search(table_name, grn_query, grn_sort).map do |lazy_doc|
-          puts lazy_doc.inspect
-          fields.map { |p| [ p, p.typecast(lazy_doc[p.field]) ] }.to_hash.update(
-            key.field => key.typecast(lazy_doc['_id'])
+          # puts lazy_doc.class.to_s
+          # puts lazy_doc[:_id]
+          # puts lazy_doc.inspect
+          fmap = fields.map { |p|
+            p_field = (p.field == "id") ? "dmid" : p.field
+            [ p, p.typecast(lazy_doc[p_field]) ]
+          }.to_hash
+          fmap.update(
+            key.field => key.typecast(lazy_doc['dmid'])
           )
         end
+
       end
 
       def read_many(query)
@@ -93,7 +101,7 @@ module DataMapper
                        end
         @database.search(model.to_s, groonga_query, groonga_sort, query_option).each do |doc| 
           resources = results[Object.const_get(model.to_s)] ||= []
-          resources << doc[:_id]
+          resources << doc[:dmid]
         end
         results
       end
@@ -101,7 +109,7 @@ module DataMapper
       private
 
       def default_groonga_sort
-        [[{:key => '_id', :order => :asc}], { :limit => -1, :offset => 0}]
+        [[{:key => 'dmid', :order => :asc}], { :limit => -1, :offset => 0}]
       end
 
       def create_grn_query(query)
@@ -169,7 +177,7 @@ module DataMapper
         # We use property.field here, so that you can declare composite
         # fields:
         #     property :content, String, :field => "title|description"
-        grn_field = (comparison.subject.field.to_s == 'id') ? :_id : comparison.subject.field
+        grn_field = (comparison.subject.field.to_s == 'id') ? :dmid : comparison.subject.field
         [ "#{grn_field}:", quote_value(value) ].join(operator)
       end
 
@@ -181,10 +189,10 @@ module DataMapper
         options[:limit]  = query.limit unless query.limit.nil?
         options[:offset] = query.offset
         if query.order.empty?
-          keys << {:key => '_id', :order => :asc}
+          keys << {:key => 'dmid', :order => :asc}
         else
           query.order.each do |direction|
-            grn_field = (direction.target.name == :id) ? :_id : direction.target.name 
+            grn_field = (direction.target.name == :id) ? :dmid : direction.target.name 
             keys << { :key => grn_field.to_s, :order => direction.operator }
           end
         end

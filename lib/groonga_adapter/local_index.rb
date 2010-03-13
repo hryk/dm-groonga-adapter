@@ -15,7 +15,7 @@ module DataMapper
         table = table(table_name)
         doc_id = doc.delete(:id)
         record = table.add(doc_id)
-        record['_id'] = doc_id
+        record['dmid'] = doc_id
         doc.each do |k, v|
           begin
             if record.have_column? k
@@ -31,6 +31,7 @@ module DataMapper
             raise e
           end
         end
+        doc
       end
 
       def delete(query)
@@ -40,25 +41,14 @@ module DataMapper
       # grn_sort   : [{:key => "_id", :order => :asc }]
       def search(table_name, grn_query, grn_sort=[], options={})
         table = @tables[table_name]
+
         table = @tables[table_name].select(grn_query, options) unless grn_query.empty?
-
+       
         if grn_sort.empty?
-          grn_sort << {:key => "_id", :order => :asc }
+          grn_sort << {:key => "dmid", :order => :asc }
         end
-
         table.sort(*grn_sort)
       end
-
-#      def search(query, options={}) # <- DataMapper::Query
-#        table_name = query.model.name
-#        table = @tables[table_name]
-#        # create and execute grn query (where statement) OR select all record (ta)
-#        unless query.conditions.operands.empty?
-#          table = @tables[table_name].select(create_grn_query(query), options)
-#        end
-#        # limit , order, offset.
-#        table.sort(create_grn_sort(query))
-#      end
 
       def exist_table(table_name)
         begin
@@ -85,7 +75,7 @@ module DataMapper
         )
 
         # add _id column (for default sort key.)
-        @tables[table_name].define_column('_id', key_type)
+        @tables[table_name].define_column('dmid', key_type)
 
         # add columns
         properties.each do |prop|

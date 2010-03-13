@@ -4,6 +4,11 @@ INDEX_PATH = Pathname(__FILE__).dirname.expand_path + 'test/index'
 
 describe DataMapper::Adapters::GroongaAdapter do
   before do
+    # remove indeces before running spec.
+    Pathname.new(INDEX_PATH).parent.children.each do |f|
+      f.delete
+    end
+
     @adapter = DataMapper.setup(:default, "groonga://#{INDEX_PATH}")
 
     Object.send(:remove_const, :User) if defined?(User)
@@ -36,7 +41,7 @@ describe DataMapper::Adapters::GroongaAdapter do
   end
 
   it 'should allow lookups using Model#get' do
-    u = User.create(:id => 2)
+    u = User.create(:id => 2, :name => "foovarbuz")
     User.get(2).should == u
   end
 
