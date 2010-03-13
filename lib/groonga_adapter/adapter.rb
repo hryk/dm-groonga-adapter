@@ -200,7 +200,7 @@ module DataMapper
       end
 
       def quote_value(value)
-        return value
+        return "\"#{value}\""
       end
 
     end # DataMapper::Adapters::GroongaAdapter
