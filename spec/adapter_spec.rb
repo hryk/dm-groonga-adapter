@@ -34,7 +34,6 @@ describe DataMapper::Adapters::GroongaAdapter do
     repository.search(User, '').should == { User => [ 2 ] }
   end
 
-  # TODO : use  UINT64 -> ShortText (UUID) as Key.
   it 'should work with a model using another key than id' do
     p = Photo.create
     repository.search(Photo, '').should == { Photo => [p.uuid] }
@@ -43,6 +42,17 @@ describe DataMapper::Adapters::GroongaAdapter do
   it 'should allow lookups using Model#get' do
     u = User.create(:id => 2, :name => "foovarbuz")
     User.get(2).should == u
+  end
+
+  it 'should allow delete rows using Model#destroy' do
+    u  = User.create(:id => 2, :name => "Alice")
+    u2 = User.create(:id => 3, :name => "Bob")
+    User.get(2).should == u
+    bob = User.get(3)
+    repository.search(User,'name:Bob').should == { User => [ 3 ] } #[User].size.should == 1
+    bob.destroy!.should == true
+    repository.search(User,'name:Bob').should == {}
+    repository.search(User,'name:Alice').should == {User => [ 2 ]}
   end
 
 end

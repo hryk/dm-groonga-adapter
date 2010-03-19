@@ -11,6 +11,7 @@ module DataMapper
         ctx_opts[:encoding] = @options[:encoding] if @options.key? :encoding
 
         @context  = Groonga::Context.default_options = ctx_opts
+
         @database = unless File.extname(@options[:path]) == '.sock'
                    LocalIndex.new(@options)
                  else
@@ -37,7 +38,6 @@ module DataMapper
                                    model.key.first # <- key attribute.
                                   )
           end
-
           @database.add model.name, attributes
         end
       end
@@ -54,11 +54,7 @@ module DataMapper
         grn_sort = create_grn_sort(query)
         fields = query.fields
         key    = query.model.key(name).first
-        # TODO : rewrite with each. not map.
         @database.search(table_name, grn_query, grn_sort).map do |lazy_doc|
-          # puts lazy_doc.class.to_s
-          # puts lazy_doc[:_id]
-          # puts lazy_doc.inspect
           fmap = fields.map { |p|
             p_field = (p.field == "id") ? "dmid" : p.field
             [ p, p.typecast(lazy_doc[p_field]) ]
@@ -67,7 +63,6 @@ module DataMapper
             key.field => key.typecast(lazy_doc['dmid'])
           )
         end
-
       end
 
       def read_many(query)
@@ -79,6 +74,11 @@ module DataMapper
       end
 
       def delete(collection)
+        query      = collection.query
+        table_name = query.model.name
+
+        @database.delete(table_name, create_grn_query(query))
+        1
       end
 
       # This returns a hash of the resource constant and the ids returned for it

@@ -34,8 +34,27 @@ module DataMapper
         doc
       end
 
-      def delete(query)
+      # FIXME : WTF.
+      def delete(table_name, grn_query)
+        unless grn_query.empty?
+          # table = @tables[table_name]
+          ids = {}
+          # WTF start
+          @tables[table_name].select(grn_query, {}).records.each {|r|
+            # r.delete <-- Not work.
+            ids[r[:dmid]] = true
+          }
+           @tables[table_name].records.each {|r|
+             if ids[r[:dmid]] == true
+               r.delete
+             end
+           }
+          # WTF end
+          #ids.each { |id| @tables[table_name].delete id }
+        end
+        1
       end
+
       # table_name : String
       # grn_query  : String (e.g., "title:@foovar"
       # grn_sort   : [{:key => "_id", :order => :asc }]
