@@ -10,6 +10,10 @@ require 'groonga_adapter'
 require 'spec'
 require 'spec/autorun'
 
+(Pathname.new(__FILE__).parent + "shared").children.grep(/\.rb$/).each do |example|
+  require example
+end
+
 def load_driver(name, default_uri)
   return false if ENV['ADAPTER'] != name.to_s
 
