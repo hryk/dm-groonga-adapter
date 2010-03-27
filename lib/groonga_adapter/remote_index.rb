@@ -15,7 +15,7 @@ module DataMapper
         return unless exist_table(table_name)
         doc_id = doc.delete(:id)
         record = []
-        record << {"_key" => doc_id, "dmid" => doc_id}.update(doc)
+        record << doc.update("_key" => doc_id)
         json = JSON.generate record
         res = request "load --table #{table_name} --values #{json.gsub(/"/, '\"')}"
         unless res[1] == 1
@@ -27,7 +27,7 @@ module DataMapper
 
       def delete(table_name, grn_query)
         self.search(table_name, grn_query).each do |i|
-          request "delete #{table_name} --id #{i['dmid']}"
+          request "delete #{table_name} --id #{i['_key']}"
         end
       end
 
@@ -48,7 +48,7 @@ module DataMapper
           result.each do |item|
             row = Mash.new
             head.each_with_index do |name, idx|
-              row[name] = item[idx] unless name == '_key' # TODO : dmid => _key
+              row[name] = item[idx]
             end
             result_set << row
           end
@@ -80,12 +80,11 @@ module DataMapper
         # create table
         res = request "table_create #{table_name} 0 #{key_type}";
         # create dmid table # TODO:delete
-
-        res = request "column_create #{table_name} dmid 0 #{key_type}" 
-        err = err_code(res)
-        unless err == 0 || err == -22
-          throw "Failed to create table : #{res.inspect}"
-        end
+        # res = request "column_create #{table_name} dmid 0 #{key_type}" 
+        # err = err_code(res)
+        # unless err == 0 || err == -22
+        #   throw "Failed to create table : #{res.inspect}"
+        # end
         # add columns
         properties.each do |prop|
           type = trans_type(prop.type)
