@@ -1,17 +1,6 @@
 shared_examples_for "as adapter" do
-  after(:all) do
-    Pathname.new(INDEX_PATH).parent.children.each do |f|
-      f.delete
-    end
-  end
-
   before(:each) do
-    # remove indeces before running spec.
-    Pathname.new(INDEX_PATH).parent.children.each do |f|
-      f.delete
-    end
-
-    @adapter = DataMapper.setup(:default, "groonga://#{INDEX_PATH}")
+    @adapter = DataMapper.setup(:default, "groonga://#{index_path}")
 
     Object.send(:remove_const, :User) if defined?(User)
     class ::User

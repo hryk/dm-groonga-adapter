@@ -12,10 +12,10 @@ module DataMapper
 
         @context  = Groonga::Context.default_options = ctx_opts
 
-        @database = unless File.extname(@options[:path]) == '.sock'
+        @database = if @options[:port].nil? #unless File.extname(@options[:path]) == '.sock'
                    LocalIndex.new(@options)
                  else
-                   RemoteIndex.new(@options) # RemoteIndex has not been supported yet.
+                   RemoteIndex.new(@options)
                  end
       end
 
@@ -178,7 +178,7 @@ module DataMapper
         # fields:
         #     property :content, String, :field => "title|description"
         grn_field = (comparison.subject.field.to_s == 'id') ? :dmid : comparison.subject.field
-        [ "#{grn_field}:", quote_value(value) ].join(operator)
+        [ "#{grn_field}:", ((value.is_a? String) ? quote_value(value) : value) ].join(operator)
       end
 
       ## from dm-ferret-adapter ##

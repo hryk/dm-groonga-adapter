@@ -23,7 +23,7 @@ module DataMapper
             else
               puts "column #{k} is not defined."
             end
-            rescue => e
+          rescue => e
             puts record.inspect
             puts record.columns.inspect
             puts k
@@ -44,11 +44,11 @@ module DataMapper
             # r.delete <-- Not work.
             ids[r[:dmid]] = true
           }
-           @tables[table_name].records.each {|r|
-             if ids[r[:dmid]] == true
-               r.delete
-             end
-           }
+          @tables[table_name].records.each {|r|
+            if ids[r[:dmid]] == true
+              r.delete
+            end
+          }
           # WTF end
           #ids.each { |id| @tables[table_name].delete id }
         end
@@ -62,7 +62,7 @@ module DataMapper
         table = @tables[table_name]
 
         table = @tables[table_name].select(grn_query, options) unless grn_query.empty?
-       
+
         if grn_sort.empty?
           grn_sort << {:key => "dmid", :order => :asc }
         end
@@ -185,6 +185,6 @@ module DataMapper
         end
       end
 
-   end
+    end
   end
 end
