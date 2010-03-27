@@ -27,7 +27,7 @@ module DataMapper
 
       def delete(table_name, grn_query)
         self.search(table_name, grn_query).each do |i|
-          request "delete #{table_name} #{i['dmid']}"
+          request "delete #{table_name} --id #{i['dmid']}"
         end
       end
 
@@ -132,9 +132,16 @@ module DataMapper
 
       def request(message)
         @context.send message
-        $stderr.puts message
+        $stderr.puts "Query " + message
         id, result = @context.receive
-        JSON.parse(result)
+        $stderr.puts "Result " + result
+        if result == 'true'
+          true
+        elsif result == 'false'
+          false
+        else
+          JSON.parse(result)
+        end
       end
 
       def parse_grn_sort(grn_sort=[])
