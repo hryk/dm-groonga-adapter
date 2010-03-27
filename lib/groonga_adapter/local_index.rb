@@ -15,7 +15,8 @@ module DataMapper
         table = table(table_name)
         doc_id = doc.delete(:id)
         record = table.add(doc_id)
-        record['dmid'] = doc_id
+        # record['dmid'] = doc_id
+        # $stderr.puts "KEY #{record['_key']} | DMID #{record['dmid']}<<<<<"
         doc.each do |k, v|
           begin
             if record.have_column? k
@@ -42,10 +43,12 @@ module DataMapper
           # WTF start
           @tables[table_name].select(grn_query, {}).records.each {|r|
             # r.delete <-- Not work.
-            ids[r[:dmid]] = true
+            # ids[r[:dmid]] == true
+            ids[r['_key']] = true
           }
           @tables[table_name].records.each {|r|
-            if ids[r[:dmid]] == true
+            # if ids[r[:dmid]] == true
+            if ids[r['_key']] == true
               r.delete
             end
           }
@@ -64,7 +67,7 @@ module DataMapper
         table = @tables[table_name].select(grn_query, options) unless grn_query.empty?
 
         if grn_sort.empty?
-          grn_sort << {:key => "dmid", :order => :asc }
+          grn_sort << {:key => "_key", :order => :asc }
         end
         table.sort(*grn_sort)
       end
@@ -94,7 +97,7 @@ module DataMapper
         )
 
         # add _id column (for default sort key.)
-        @tables[table_name].define_column('dmid', key_type)
+        # @tables[table_name].define_column('dmid', key_type)
 
         # add columns
         properties.each do |prop|
