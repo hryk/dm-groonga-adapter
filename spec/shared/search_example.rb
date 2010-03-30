@@ -52,4 +52,13 @@ shared_examples_for 'as is_search plugin' do
     image.save
     Image.search(:title.like => "すいてない").should == [image]
   end
+
+  it 'should allow search with all columns' do
+    story = Story.create(:title  => "Oil Rig",
+                         :author => "John Doe");
+    story2 = Story.create(:title => "Lolem ipsum",
+                         :author => "John Doe");
+    # Story.fulltext_search("John").should == [story, story2] # <--- Crash on local index.
+    Story.fulltext_search("author:@John").should == [story, story2]
+  end
 end
