@@ -5,6 +5,12 @@ module DataMapper
 
       def initialize(options)
         @options = options
+#        ctx_opts = {
+#          :encoding => :utf8
+#        }
+#        ctx_opts[:encoding] = @options[:encoding] if @options.key? :encoding
+#        @context  = Groonga::Context.default_options = ctx_opts
+        @context = Groonga::Context.default
         create_or_init_database
         @tables = Mash.new
         create_or_init_term_table
@@ -96,9 +102,6 @@ module DataMapper
           :key_type   => key_type
         )
 
-        # add _id column (for default sort key.)
-        # @tables[table_name].define_column('dmid', key_type)
-
         # add columns
         properties.each do |prop|
           type = trans_type(prop.type)
@@ -175,10 +178,11 @@ module DataMapper
       def create_or_init_database
         # try to open database.
         path = Pathname(@options[:path])
-        begin
+
+        if path.exist? && path.file?
+          # open database
           @database = Groonga::Database.open(path.to_s)
-        rescue => e
-          STDERR.puts "try create database. #{e}"
+        else
           # check directory.
           unless path.dirname.directory?
             path.dirname.mkpath

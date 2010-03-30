@@ -5,12 +5,14 @@ require 'dm-is-searchable'
 
 $LOAD_PATH.unshift(File.dirname(__FILE__))
 $LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '..', 'lib'))
+SPEC_ROOT = Pathname(__FILE__).dirname.expand_path
 
 require 'groonga_adapter'
 require 'spec'
 require 'spec/autorun'
 
 (Pathname.new(__FILE__).parent + "shared").children.grep(/\.rb$/).each do |example|
+  puts example
   require example
 end
 
@@ -33,6 +35,12 @@ HAS_SQLITE3  = load_driver(:sqlite3,  'sqlite3::memory:')
 HAS_MYSQL    = load_driver(:mysql,    'mysql://localhost/dm_core_test')
 HAS_POSTGRES = load_driver(:postgres, 'postgres://postgres@localhost/dm_core_test')
 
-Spec::Runner.configure do |config|
-  
+def local_groonga_path
+  Pathname(SPEC_ROOT) + 'test/index'
 end
+def remote_groonga_path
+  ENV["DM_GRN_URL"] || "192.168.81.132:8888"
+end
+
+# Spec::Runner.configure do |config|
+# end

@@ -5,13 +5,7 @@ module DataMapper
 
       def initialize(name, options)
         super
-        ctx_opts = {
-          :encoding => :utf8
-        }
-        ctx_opts[:encoding] = @options[:encoding] if @options.key? :encoding
-
-        @context  = Groonga::Context.default_options = ctx_opts
-
+        Groonga::Context.default = nil # Reset Groonga::Context
         @database = if @options[:port].nil? #unless File.extname(@options[:path]) == '.sock'
                    LocalIndex.new(@options)
                  else
@@ -200,7 +194,7 @@ module DataMapper
       end
 
       def quote_value(value)
-        return "\"#{value}\""
+        return value.gsub(/"/, '\"').gsub(/\s/, '\ ')
       end
 
     end # DataMapper::Adapters::GroongaAdapter

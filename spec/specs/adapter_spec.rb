@@ -1,9 +1,7 @@
-require File.expand_path(File.dirname(__FILE__) + '/spec_helper')
+require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
 
 describe "local_index adapter" do
-  def index_path
-    Pathname(__FILE__).dirname.expand_path + 'test/index'
-  end
+  def index_path;local_groonga_path;end
 
   after(:all) do
     Pathname.new(index_path).parent.children.each do |f|
@@ -19,11 +17,11 @@ describe "local_index adapter" do
   end
 
   it_should_behave_like "as adapter"
+#  it_should_behave_like "as is_search plugin"
 end
 
 describe "remote_index adapter" do
-  def index_path
-    ENV["DM_GRN_URL"] || "192.168.81.132:8888"
-  end
+  def index_path;remote_groonga_path;end
   it_should_behave_like "as adapter"
+#  it_should_behave_like "as is_search plugin"
 end

@@ -13,11 +13,11 @@ module DataMapper
 
       def add(table_name, doc)
         return unless exist_table(table_name)
-        doc_id = doc.delete(:id)
+        doc_id = doc[:id]#doc.delete(:id)
         record = []
         record << doc.update("_key" => doc_id)
         json = JSON.generate record
-        res = request "load --table #{table_name} --values #{json.gsub(/"/, '\"')}"
+        res = request "load --table #{table_name} --values #{json.gsub(/"/, '\"').gsub(/\s/, '\ ')}"
         unless res[1] == 1
           throw "failed to load record."
         else
@@ -179,10 +179,6 @@ module DataMapper
         end
       end
 
-    end
-  end
-end
-
       def trans_type(dmtype)
         case dmtype.to_s
         when 'String'
@@ -212,6 +208,11 @@ end
           return 'ShortText'
         end
       end
+
+    end
+  end
+end
+
 
 __END__
 
