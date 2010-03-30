@@ -11,6 +11,7 @@ module DataMapper
                  else
                    RemoteIndex.new(@options)
                  end
+        @database.logger = ::DataMapper.logger
       end
 
       def create(resources)
@@ -23,9 +24,7 @@ module DataMapper
           # Since we don't inspect the models before generating the indices,
           # we'll map the resource's key to the :id column.
           attributes[:id]    ||= resource.key.first
-          # attributes[:_type]   = model.name
-          # $stderr.puts resource.key.first.inspect
-          # $stderr.puts model.key.first.inspect
+
           unless @database.exist_table resource.model.name
             @database.create_table(model.name,
                                    model.properties(name),
@@ -66,6 +65,12 @@ module DataMapper
       def read_one(query)
         read(query).first
       end
+
+      # TODO : implement #update
+      #      def update(attributes, collection)
+      #        query = collection.query
+      #        1
+      #      end
 
       def delete(collection)
         query      = collection.query

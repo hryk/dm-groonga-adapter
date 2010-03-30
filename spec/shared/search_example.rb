@@ -3,7 +3,7 @@ shared_examples_for 'as is_search plugin' do
   before(:each) do
     DataMapper.setup(:default, "sqlite3::memory:")
     DataMapper.setup(:search, "groonga://#{index_path}")
-
+    DataMapper::Logger.new($stderr, :debug)
     Object.send(:remove_const, :Image) if defined?(Image)
     class ::Image
       include DataMapper::Resource
@@ -43,5 +43,13 @@ shared_examples_for 'as is_search plugin' do
     image.title = "Owl Owl"
     image.save
     Image.search(:title.like => "Owl").should == [image]
+  end
+
+  it "should allow search with japanese" do
+    image = Image.create(:title => "お腹すいた");
+    Image.search(:title.like => "お腹").should == [image]
+    image.title = "すいてない"
+    image.save
+    Image.search(:title.like => "すいてない").should == [image]
   end
 end

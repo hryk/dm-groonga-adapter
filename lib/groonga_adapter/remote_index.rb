@@ -3,6 +3,7 @@ require 'json'
 module DataMapper
   module Adapters
     class GroongaAdapter::RemoteIndex
+      attr_accessor :logger
       attr_accessor :context
 
       def initialize(options)
@@ -131,9 +132,9 @@ module DataMapper
 
       def request(message)
         @context.send message
-        $stderr.puts "Query " + message
+        self.logger.debug "Query: " + message
         id, result = @context.receive
-        $stderr.puts "Result " + result
+        self.logger.debug "Result: " + result
         if result == 'true'
           true
         elsif result == 'false'

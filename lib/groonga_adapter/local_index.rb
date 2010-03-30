@@ -2,14 +2,10 @@ $KCODE = "UTF-8"
 module DataMapper
   module Adapters
     class GroongaAdapter::LocalIndex
+      attr_accessor :logger
 
       def initialize(options)
         @options = options
-#        ctx_opts = {
-#          :encoding => :utf8
-#        }
-#        ctx_opts[:encoding] = @options[:encoding] if @options.key? :encoding
-#        @context  = Groonga::Context.default_options = ctx_opts
         @context = Groonga::Context.default
         create_or_init_database
         @tables = Mash.new
@@ -21,8 +17,7 @@ module DataMapper
         table = table(table_name)
         doc_id = doc.delete(:id)
         record = table.add(doc_id)
-        # record['dmid'] = doc_id
-        # $stderr.puts "KEY #{record['_key']} | DMID #{record['dmid']}<<<<<"
+
         doc.each do |k, v|
           begin
             if record.have_column? k
