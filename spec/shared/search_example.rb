@@ -28,7 +28,9 @@ shared_examples_for 'as is_search plugin' do
   end
 
   it 'should allow search with no operator' do
-    pending("grn expression may have bug.")
+
+    pending "grn expression may have bug." # FIXME
+
     image = Image.create(:title => "Oil Rig");
     story = Story.create(:title => "Oil Rig",
                          :author => "John Doe");
@@ -38,6 +40,8 @@ shared_examples_for 'as is_search plugin' do
   it 'should allow search with :like operator' do
     image = Image.create(:title => "Oil Rig");
     Image.search(:title.like => "Oil").should == [image]
+    image.title = "Owl Owl"
+    image.save
+    Image.search(:title.like => "Owl").should == [image]
   end
-
 end

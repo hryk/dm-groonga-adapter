@@ -19,8 +19,8 @@ describe "local_index search" do
   it_should_behave_like "as is_search plugin"
 end
 
-#describe "remote_index search" do
-#  def index_path;remote_groonga_path;end
-#  it_should_behave_like "as is_search plugin"
-#end
+describe "remote_index search" do
+  def index_path;remote_groonga_path;end
+  it_should_behave_like "as is_search plugin"
+end
 

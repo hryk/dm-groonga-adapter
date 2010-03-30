@@ -18,6 +18,9 @@ shared_examples_for "as adapter" do
       property :happy, Boolean, :default => true
       property :description, String
     end
+
+    User.auto_migrate!
+    Photo.auto_migrate!
   end
 
   it 'should work with a model using id' do
@@ -28,6 +31,7 @@ shared_examples_for "as adapter" do
   it 'should work with a model using another key than id' do
     p = Photo.create
     repository.search(Photo, '').should == { Photo => [p.uuid] }
+    p.destroy!
   end
 
   it 'should allow lookups using Model#get' do

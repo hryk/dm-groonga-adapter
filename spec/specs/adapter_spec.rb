@@ -17,11 +17,9 @@ describe "local_index adapter" do
   end
 
   it_should_behave_like "as adapter"
-#  it_should_behave_like "as is_search plugin"
 end
 
 describe "remote_index adapter" do
   def index_path;remote_groonga_path;end
   it_should_behave_like "as adapter"
-#  it_should_behave_like "as is_search plugin"
 end
