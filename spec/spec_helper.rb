@@ -39,7 +39,7 @@ def local_groonga_path
   Pathname(SPEC_ROOT) + 'test/index'
 end
 def remote_groonga_path
-  ENV["DM_GRN_URL"] || "192.168.81.132:8888"
+  ENV["DM_GRN_URL"] || "127.0.0.1:10041" # "192.168.81.132:8888" <- 1.4.0
 end
 
 # Spec::Runner.configure do |config|

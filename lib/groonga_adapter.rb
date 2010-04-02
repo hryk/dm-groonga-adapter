@@ -6,4 +6,4 @@ require 'groonga_adapter/remote_index'
 require 'groonga_adapter/remote_result'
 require 'groonga_adapter/repository_ext'
 require 'groonga_adapter/model_ext'
-
+require 'groonga_adapter/unicode_ext'

@@ -64,7 +64,6 @@ module DataMapper
       # grn_sort   : [{:key => "_id", :order => :asc }]
       def search(table_name, grn_query, grn_sort=[], options={})
         table = @tables[table_name]
-
         table = @tables[table_name].select(grn_query, options) unless grn_query.empty?
 
         if grn_sort.empty?
@@ -111,7 +110,7 @@ module DataMapper
       private
 
       def add_term(table, prop)
-        @tables['_terms'].define_index_column(
+        @tables['DMGterms'].define_index_column(
           "#{table}_#{prop}", @tables[table],
           :source => "#{table}.#{prop}"
         )
@@ -160,13 +159,13 @@ module DataMapper
       end
 
       def create_or_init_term_table
-        unless exist_table('_terms')
-          @tables['_terms'] = Groonga::Hash.create(:name       => "_terms",
+        unless exist_table('DMGterms')
+          @tables['DMGterms'] = Groonga::Hash.create(:name       => "DMGterms",
                                                    :persistent => true,
                                                    :key_type   => Groonga::Type::UINT64,
                                                    :default_tokenizer => "TokenBigram")
         else
-          open_table('_terms')
+          open_table('DMGterms')
         end
       end
 

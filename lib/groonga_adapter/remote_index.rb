@@ -14,21 +14,22 @@ module DataMapper
 
       def add(table_name, doc)
         return unless exist_table(table_name)
-        doc_id = doc[:id]#doc.delete(:id)
+        doc_id = doc[:id] #doc.delete(:id)
         record = []
         record << doc.update("_key" => doc_id)
         json = JSON.generate record
-        res = request "load --table #{table_name} --values #{json.gsub(/"/, '\"').gsub(/\s/, '\ ')}"
-        unless res[1] == 1
-          throw "failed to load record."
+        res = request "load --table #{table_name} --values #{Unicode.unescape(json.gsub(/"/, '\"').gsub(/\s/, '\ '))}"
+        result = GroongaResult::Count.new res
+        if result.success? && result.count > 0
+          return doc
         else
-          doc
+          throw "failed to load record. : #{result.err_code}"
         end
       end
 
       def delete(table_name, grn_query)
         self.search(table_name, grn_query).each do |i|
-          request "delete #{table_name} --id #{i['_key']}"
+          request "delete #{table_name} --id #{i['_id']}"
         end
       end
 
@@ -36,63 +37,66 @@ module DataMapper
       #              [offset [limit [drilldown [drilldown_sortby [drilldown_output_columns
       #                           [drilldown_offset [drilldown_limit [output_type]]]]]]]]]]]]]]
       def search(table_name, grn_query, grn_sort=[], options={})
-          sort_by, offset, limit = parse_grn_sort grn_sort
-          remote_query = (grn_query.empty?) ? "" : "--query #{grn_query}"
-          remote_sort_by   = (sort_by.empty?) ? "" : "--sort-by #{sort_by}"
-          res = request "select #{table_name} #{remote_query} #{remote_sort_by} --offset #{offset} --limit #{limit}"
-          # [[0],[[1],["_id","_key","title","body"],[1,"abandon","","放棄する"]]]
-          result = res[1]
-          count = result.shift
-          return [] if count == 0
-          head  = result.shift
-          result_set = []
-          result.each do |item|
-            row = Mash.new
-            head.each_with_index do |name, idx|
-              row[name] = item[idx]
-            end
-            result_set << row
-          end
-          result_set
+        sort_by, offset, limit = parse_grn_sort grn_sort
+        remote_query = (grn_query.empty?) ? "" : "--query #{grn_query}"
+        remote_sort_by   = (sort_by.empty?) ? "" : "--sort-by #{sort_by}"
+        res = request "select #{table_name} #{remote_query} #{remote_sort_by} --offset #{offset} --limit #{limit}"
+        list = GroongaResult::List.new res
+        if list.success?
+          return list.to_a
+        else
+          throw list.err_msg
+        end
       end
 
       def exist_table(table_name)
-        list = request "table_list"
-        existence = false
-        list.shift
-        list.each do |list|
-          existence = true if list[1] == table_name
+        res = request "table_list"
+        table_list = GroongaResult::List.new res
+        if table_list.success?
+          existence = false
+          table_list.each do |row|
+            existence = true if row[:name] == table_name
+          end
+          return existence
+        else
+          throw table_list.err_msg
         end
-        existence
       end
 
       def exist_column(table_name, column_name)
-        # [["id","name","path","type","flags","domain"],[260,"title","test.0000104","var",49152,259]]
-        list = request "column_list #{table_name}"
-        existence = false
-        list.shift.each do |list|
-          existence = true if list[1] == column_name
+        # groonga 1.4
+        #   [["id","name","path","type","flags","domain"],[260,"title","test.0000104","var",49152,259]]
+        # groonga 1.7
+        #   [
+        #    [0,1269972586.4569,1.4e-05],
+        #    [[["id", "UInt32"],["name","ShortText"],["path","ShortText"],["type","ShortText"],["flags","ShortText"],["domain", "ShortText"],["range", "ShortText"],["source","ShortText"]]]
+        #    ]
+        res = request "column_list #{table_name}"
+        list = GroongaResult::List.new res
+        if list.success?
+          existence = false
+          list.each do |row|
+            existence = true if row[:name] == column_name
+          end
+          existence
+        else
+          throw list.err_msg
         end
-        existence
       end
 
       def create_table(table_name, properties, key_prop=nil)
         key_type = (key_prop.nil?) ? "UInt64" : trans_type(key_prop.type)
         # create table
         res = request "table_create #{table_name} 0 #{key_type}";
-        # create dmid table # TODO:delete
-        # res = request "column_create #{table_name} dmid 0 #{key_type}" 
-        # err = err_code(res)
-        # unless err == 0 || err == -22
-        #   throw "Failed to create table : #{res.inspect}"
-        # end
-        # add columns
+        result = GroongaResult::Base.new res
+        throw result.err_msg unless result.err_code == 0 || result.err_code == -22
         properties.each do |prop|
           type = trans_type(prop.type)
           propname = prop.name.to_s
           query = "column_create #{table_name} #{propname} 0 #{type}"
-          res = request query
-          err = err_code res
+          res = GroongaResult::Base.new(request query)
+          err = res.err_code
+
           unless err == 0 || err == -22
             throw "Create Column Failed : #{res.inspect} : #{query}"
           end
@@ -155,31 +159,6 @@ module DataMapper
         [ sort_str, options[:offset], options[:limit] ]
       end
 
-      def parse_result(retval)
-        if retval.size == 1
-          if retval[0] == [0]
-            return 0
-          elsif retval
-          end
-        end
-        # [[0]]
-        # [[0],
-        #   [[2],
-        #    ["_id","_key","title"],
-        #    [1,"http://hoge.com/","hoge"],
-        #    [2,"http://fuga.com/","fuga"]]]
-        #
-        # [["id","name","path","flags","domain"],
-        #  [256,"Blog","test.0000100",49152,14]]
-        mash_array = []
-        head = retval.shift
-        retval.each do |row|
-          m = Mash.new
-          head.each_with_index {|name, i| m[name] = row[i] }
-          mash_array << m
-        end
-      end
-
       def trans_type(dmtype)
         case dmtype.to_s
         when 'String'
@@ -209,10 +188,9 @@ module DataMapper
           return 'ShortText'
         end
       end
-
-    end
-  end
-end
+    end # class GroongaAdapter::RemoteIndex
+  end # module Adapters
+end # module DataMapper
 
 
 __END__
@@ -237,7 +215,7 @@ column_list
 define_selector
 delete
 get
-      load
+load
 log_level
 log_put
 log_put
@@ -264,7 +242,7 @@ Int64         64bit符号付き整数。
 UInt64        64bit符号なし整数。
 Float         ieee754形式の64bit浮動小数点数。
 Time          1970年1月1日0時0分0秒からの経過マイクロ秒数を
-              64bit符号付き整数で表現した値。
+64bit符号付き整数で表現した値。
 ShortText     4Kbyte以下の文字列。
 Text          64Kbyte以下の文字列。
 LongText      2Gbyte以下の文字列。
