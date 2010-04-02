@@ -1,3 +1,4 @@
+# http://d.hatena.ne.jp/cesar/20070401/p1
 module Unicode
   def escape(str)
     ary = str.unpack("U*").map!{|i| "\\u#{i.to_s(16)}"}
