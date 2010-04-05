@@ -1,0 +1,47 @@
+body {
+  /* margin-top: 1.0em; */
+  background-color: #f641a0;
+  font-family: "Helvetica,Arial,FreeSans";
+  color: #000000;
+  text-align : left;
+}
+
+#container {
+  margin: 0px auto;
+  padding-top: 25px;
+  width: 700px;
+  text-align : left;
+}
+
+h1 {
+  font-size: 500%;
+  color: #09be5f;
+  margin-bottom: 3px;
+  font-weight: bold;
+}
+
+h1 .small { font-size: 0.4em; }
+h1 a { text-decoration: none }
+h2 { font-size: 200%; color: #09be5f; font-weight: bold; margin: 15px auto;}
+h3 { text-align: center; color: #09be5f; }
+a { color: #09be5f; }
+.description { font-size: 150%; margin-bottom: 30px; margin-top: 30px; font-style: italic;}
+.download { float: right; }
+hr { border: 0; width: 80%; border-bottom: 1px solid #aaa}
+.footer { text-align:center; padding-top:30px; font-style: italic; }
+
+pre {
+  background-color : #000;
+  color : #FFF;
+  padding: 15px;
+  margin: 5px auto;
+}
+
+p.license {
+  font-size: 120%;
+  font-family : "Monaco", monospace;
+}
+
+ul li {
+  margin : 5px auto;
+}
