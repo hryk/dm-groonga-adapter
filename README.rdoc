@@ -1,6 +1,32 @@
 = dm-groonga-adapter
 
-Description goes here.
+dm-groonga-adapter provides is-search adapter for groonga (http://groonga.org).
+With dm-is-search, you can use groonga as search repository. Currently, This 
+module supports groonga 0.1.7 or later.
+
+== Install
+
+gem install dm-groonga-adapter
+
+== Dependencies
+
+* groonga (ruby binding) >= 0.9.1
+* dm-core >= 0.10.0
+* dm-more >= 0.10.0
+
+== Setup Repository
+
+For a single process site, use groonga dataase files directory.
+
+  DataMapper.setup :search, "groonga:///path/to/database"
+
+For a multi-process site, use url for a groonga server process.
+
+  DataMapper.setup :search, "groonga://127.0.0.1:10041"
+
+== Sample Code
+
+See examples/base.rb and spec/shared/search_spec.rb
 
 == Note on Patches/Pull Requests
  
