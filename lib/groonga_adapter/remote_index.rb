@@ -164,7 +164,7 @@ module DataMapper
         when 'String'
           return 'ShortText'
         when 'Text'
-          return 'LongText'
+          return 'Text'
         when 'Float'
           return 'Float'
         when 'Bool'
@@ -183,6 +183,8 @@ module DataMapper
             return 'Bool'
           when "Serial"
             return 'Int32'
+          when "Text"
+            return "Text"
           end
         else
           return 'ShortText'
