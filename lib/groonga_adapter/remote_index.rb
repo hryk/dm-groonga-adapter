@@ -1,4 +1,5 @@
 require 'json'
+require 'nkf'
 
 module DataMapper
   module Adapters
@@ -9,6 +10,7 @@ module DataMapper
       def initialize(options)
         @context = Groonga::Context.default
         @context.connect(:host => options[:host], :port => options[:port])
+        @jsonbuilder = JsonBuilder.new
         # request "status" # <- TODO check connection with status command
       end
 
@@ -17,8 +19,8 @@ module DataMapper
         doc_id = doc[:id] #doc.delete(:id)
         record = []
         record << doc.update("_key" => doc_id)
-        json = JSON.generate record
-        res = request "load --table #{table_name} --values #{Unicode.unescape(json.gsub(/"/, '\"').gsub(/\s/, '\ '))}"
+        values = escape_value record
+        res = request "load --table #{table_name} --values #{values}"
         result = GroongaResult::Count.new res
         if result.success? && result.count > 0
           return doc
@@ -108,6 +110,27 @@ module DataMapper
       end
 
       protected
+
+      def escape_value record
+        record.map! {|r|
+          tmp = {}
+          r.each {|k,v|
+            if !v.nil?
+              if v.is_a? String
+                tmp[k] = NKF.nkf('-wZ1',v)
+                tmp[k].gsub!(/\\/, '\\\\\\')
+                tmp[k].gsub!(/"/) { |c| "\\\\\\#{c}" }
+              else
+                tmp[k] = v.to_s
+              end
+            end
+          }
+          tmp
+        }
+        json = @jsonbuilder.build record
+        json.gsub!(/'|\s|\(|\)|\t/) { |c| "\\#{c}" }
+        json
+      end
 
       def err_code(res)
         return if res.nil?
