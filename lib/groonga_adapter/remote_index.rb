@@ -41,7 +41,7 @@ module DataMapper
       def search(table_name, grn_query, grn_sort=[], options={})
         sort_by, offset, limit = parse_grn_sort grn_sort
         remote_query = (grn_query.empty?) ? "" : "--query #{grn_query}"
-        remote_sort_by   = (sort_by.empty?) ? "" : "--sort-by #{sort_by}"
+        remote_sort_by   = (sort_by.empty?) ? "" : "--sortby #{sort_by}"
         res = request "select #{table_name} #{remote_query} #{remote_sort_by} --offset #{offset} --limit #{limit}"
         list = GroongaResult::List.new res
         if list.success?
