@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{dm-groonga-adapter}
-  s.version = "0.0.0"
+  s.version = "0.1.0.pre2"
 
-  s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
+  s.required_rubygems_version = Gem::Requirement.new("> 1.3.1") if s.respond_to? :required_rubygems_version=
   s.authors = ["hiroyuki"]
-  s.date = %q{2010-03-14}
+  s.date = %q{2010-04-12}
   s.description = %q{datamapper adapter for groonga search engine}
   s.email = %q{hello@hryk.info}
   s.extra_rdoc_files = [
@@ -22,25 +22,39 @@ Gem::Specification.new do |s|
      "LICENSE",
      "README.rdoc",
      "Rakefile",
+     "VERSION.yml",
+     "dm-groonga-adapter.gemspec",
      "examples/basic.rb",
      "lib/groonga_adapter.rb",
      "lib/groonga_adapter/adapter.rb",
+     "lib/groonga_adapter/jsonparser.rb",
      "lib/groonga_adapter/local_index.rb",
+     "lib/groonga_adapter/model_ext.rb",
      "lib/groonga_adapter/remote_index.rb",
+     "lib/groonga_adapter/remote_result.rb",
      "lib/groonga_adapter/repository_ext.rb",
-     "spec/adapter_spec.rb",
+     "lib/groonga_adapter/unicode_ext.rb",
      "spec/rcov.opts",
+     "spec/shared/adapter_example.rb",
+     "spec/shared/search_example.rb",
      "spec/spec.opts",
-     "spec/spec_helper.rb"
+     "spec/spec_helper.rb",
+     "spec/specs/adapter_spec.rb",
+     "spec/specs/remote_result_spec.rb",
+     "spec/specs/search_spec.rb"
   ]
-  s.homepage = %q{http://github.com/hryk/dm-groonga-adapter}
+  s.homepage = %q{http://hryk.github.com/dm-groonga-adapter}
   s.rdoc_options = ["--charset=UTF-8"]
   s.require_paths = ["lib"]
   s.rubygems_version = %q{1.3.6}
   s.summary = %q{datamapper adapter for groonga search engine}
   s.test_files = [
-    "spec/adapter_spec.rb",
+    "spec/shared/adapter_example.rb",
+     "spec/shared/search_example.rb",
      "spec/spec_helper.rb",
+     "spec/specs/adapter_spec.rb",
+     "spec/specs/remote_result_spec.rb",
+     "spec/specs/search_spec.rb",
      "examples/basic.rb"
   ]
 

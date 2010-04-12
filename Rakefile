@@ -8,7 +8,7 @@ begin
     gem.summary = %Q{datamapper adapter for groonga search engine}
     gem.description = gem.summary
     gem.email = "hello@hryk.info"
-    gem.homepage = "http://github.com/hryk/dm-groonga-adapter"
+    gem.homepage = "http://hryk.github.com/dm-groonga-adapter"
     gem.authors = ["hiroyuki"]
 
     gem.add_dependency "groonga", ">= 0.9"
