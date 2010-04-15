@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
 
   s.required_rubygems_version = Gem::Requirement.new("> 1.3.1") if s.respond_to? :required_rubygems_version=
   s.authors = ["hiroyuki"]
-  s.date = %q{2010-04-12}
+  s.date = %q{2010-04-15}
   s.description = %q{datamapper adapter for groonga search engine}
   s.email = %q{hello@hryk.info}
   s.extra_rdoc_files = [
