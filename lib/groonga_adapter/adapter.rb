@@ -3,6 +3,10 @@ module DataMapper
   module Adapters
     class GroongaAdapter < AbstractAdapter
 
+      # Initialize adapter
+      #   
+      # @param [String] name
+      # @param [Hash] options the options passed to RemoteIndex or LocalIndex.
       def initialize(name, options)
         super
         Groonga::Context.default = nil # Reset Groonga::Context

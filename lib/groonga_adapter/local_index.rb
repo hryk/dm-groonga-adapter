@@ -141,6 +141,8 @@ module DataMapper
             return Groonga::Type::BOOL
           when "Serial"
             return Groonga::Type::UINT32
+          when "Text"
+            return Groonga::Type::TEXT
           end
         else
           return Groonga::Type::SHORT_TEXT

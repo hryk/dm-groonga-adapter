@@ -39,9 +39,20 @@ module DataMapper
       #              [offset [limit [drilldown [drilldown_sortby [drilldown_output_columns
       #                           [drilldown_offset [drilldown_limit [output_type]]]]]]]]]]]]]]
       def search(table_name, grn_query, grn_sort=[], options={})
+        # In case of columns contain long string, groonga return 10 results with no-limit..
+        # --limit #{num} option is needed to get all result.
+        # because of this, current remote_index request at twice.
         sort_by, offset, limit = parse_grn_sort grn_sort
-        remote_query = (grn_query.empty?) ? "" : "--query #{grn_query}"
-        remote_sort_by   = (sort_by.empty?) ? "" : "--sortby #{sort_by}"
+        remote_query     = (grn_query.empty?) ? "" : "--query #{grn_query}"
+        remote_sort_by   = (sort_by.empty?)   ? "" : "--sortby #{sort_by}"
+        # 1st request for get count.
+
+        if limit.nil? or limit == -1
+          count = GroongaResult::List.new(request "select #{table_name} #{remote_query} #{remote_sort_by} --output_columns _id")
+          limit = count.size
+        end
+
+        # 2nd request for get ids.
         res = request "select #{table_name} #{remote_query} #{remote_sort_by} --offset #{offset} --limit #{limit}"
         list = GroongaResult::List.new res
         if list.success?
@@ -138,6 +149,39 @@ module DataMapper
         code
       end
 
+      def trans_type(dmtype)
+        case dmtype.to_s
+        when 'String'
+          return 'ShortText'
+        when 'Text'
+          return 'Text'
+        when 'Float'
+          return 'Float'
+        when 'Bool'
+          return 'Bool'
+        when 'Boolean'
+          return 'Bool'
+        when 'Integer'
+          return 'Int32'
+        when 'BigDecimal'
+          return 'Int64'
+        when 'Time'
+          return 'Time'
+        when /^DataMapper::Types::(.+)$/
+          case $1
+          when "Boolean"
+            return 'Bool'
+          when "Serial"
+            return 'Int32'
+          when "Text"
+            return "Text"
+          end
+        else
+          return 'ShortText'
+        end
+      end
+
+
       def create_term_table(table_name, key_prop="ShortText", tokenizer="TokenBigram")
         res = request "table_create #{table_name} TABLE_PAT_KEY|KEY_NORMALIZE #{key_prop} Void #{tokenizer}"
         throw "Fale to create term table." unless err_code(res) == 0 || err_code(res) == -22
@@ -182,37 +226,6 @@ module DataMapper
         [ sort_str, options[:offset], options[:limit] ]
       end
 
-      def trans_type(dmtype)
-        case dmtype.to_s
-        when 'String'
-          return 'ShortText'
-        when 'Text'
-          return 'Text'
-        when 'Float'
-          return 'Float'
-        when 'Bool'
-          return 'Bool'
-        when 'Boolean'
-          return 'Bool'
-        when 'Integer'
-          return 'Int32'
-        when 'BigDecimal'
-          return 'Int64'
-        when 'Time'
-          return 'Time'
-        when /^DataMapper::Types::(.+)$/
-          case $1
-          when "Boolean"
-            return 'Bool'
-          when "Serial"
-            return 'Int32'
-          when "Text"
-            return "Text"
-          end
-        else
-          return 'ShortText'
-        end
-      end
     end # class GroongaAdapter::RemoteIndex
   end # module Adapters
 end # module DataMapper

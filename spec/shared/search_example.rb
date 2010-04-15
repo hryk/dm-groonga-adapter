@@ -3,13 +3,13 @@ shared_examples_for 'as is_search plugin' do
   before(:each) do
     DataMapper.setup(:default, "sqlite3::memory:")
     DataMapper.setup(:search, "groonga://#{index_path}")
-    DataMapper::Logger.new($stderr, :debug)
+#    DataMapper::Logger.new($stderr, :debug)
     Object.send(:remove_const, :Image) if defined?(Image)
     class ::Image
       include DataMapper::Resource
       property :id, Serial
       property :title, String
-
+      property :description, Text
       is :searchable # this defaults to :search repository, you could also do
     end
 
@@ -61,4 +61,15 @@ shared_examples_for 'as is_search plugin' do
     # Story.fulltext_search("John").should == [story, story2] # <--- Crash on local index.
     Story.fulltext_search("author:@John").should == [story, story2]
   end
+
+  it 'should return all result when there is more than 10 result' do
+    suffix = (0..10).map {|i| "long description." }
+    (0..157).each do |num|
+      img = Image.create(:title => "Picture_#{num}", :description => "#{suffix}")
+      img.save
+    end
+    results = Image.search(:title.like => "Picture")
+    results.size.should == 158
+  end
 end
+
