@@ -24,7 +24,9 @@ shared_examples_for 'as is_search plugin' do
     end
 
     Story.auto_migrate!
+    Story.auto_migrate!(:search)
     Image.auto_migrate!
+    Image.auto_migrate!(:search)
   end
 
   it 'should allow search with no operator' do

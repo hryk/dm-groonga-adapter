@@ -2,15 +2,17 @@ $KCODE = 'UTF-8'
 module DataMapper
   module Adapters
     class GroongaAdapter < AbstractAdapter
+      extend Chainable
+      extend Deprecate
 
       # Initialize adapter
       #   
       # @param [String] name
       # @param [Hash] options the options passed to RemoteIndex or LocalIndex.
-      def initialize(name, options)
+      def initialize(name, uri_or_options)
         super
-        Groonga::Context.default = nil # Reset Groonga::Context
-        @database = if @options[:port].nil? #unless File.extname(@options[:path]) == '.sock'
+        Groonga::Context.default = nil      # Reset Groonga::Context
+        @database = if @options[:port].nil? # if port is nil, use local index.
                    LocalIndex.new(@options)
                  else
                    RemoteIndex.new(@options)
@@ -18,8 +20,46 @@ module DataMapper
         @database.logger = ::DataMapper.logger
       end
 
+      # Create groonga record from resources.
+      #
+      # @param  [Enumerable(Resource)] resources
+      #   The list of resources (model instances) to create.
+      #
+      # @return [Integer]
+      #   The number of records that were actually saved into the database
       def create(resources)
         name = self.name
+
+#        resources.each do |resource|
+#          model       = resource.model
+#          serial      = model.serial(name)
+#          attributes  = resource.dirty_attributes
+#          properties  = {}
+#
+#          model.properties(name).each do |property|
+#            bind_value = attributes[property]
+#
+#            # skip insering NULL for columns that are serial or without a default
+#            next if bind_value.nil? && (property.serial? || !property.default?)
+#
+#            # if serial is being set explicitly, do not set it again
+#            #
+#            # (Because groonga does not have a function correspond to 
+#            # SQL's AUTO_INCREMENT, serial/key MUST NOT be nil.
+#            if property.equal? serial
+#              serial = nil
+#            end
+#
+#            properties[property] = bind_value
+#          end
+#
+#          $stderr.puts properties
+#          (affected_rows, insert_id) = @database.add(model, properties, serial)
+#
+#          if affected_rows == 1 && serial
+#            serial.set!(resource, insert_id)
+#          end
+#        end
 
         resources.each do |resource|
           model = resource.model
@@ -29,20 +69,15 @@ module DataMapper
           # we'll map the resource's key to the :id column.
           attributes[:id]    ||= resource.key.first
 
-          unless @database.exist_table resource.model.name
-            @database.create_table(model.name,
-                                   model.properties(name),
-                                   model.key.first # <- key attribute.
-                                  )
-          end
-          @database.add model.name, attributes
+          @database.add model.storage_name(name), attributes
         end
       end
 
       # This returns an array of Groonga docs (array of Groonga::Record) which can
       # be used to instantiate objects by doc[:_type] and doc[:_id]
       def read(query) # query is DataMapper::Query
-        table_name = query.model.name
+        name = self.name
+        table_name = query.model.storage_name(name)
         grn_query = unless query.conditions.operands.empty?
                       create_grn_query(query)
                     else
@@ -77,8 +112,9 @@ module DataMapper
       #      end
 
       def delete(collection)
+        name = self.name
         query      = collection.query
-        table_name = query.model.name
+        table_name = query.model.storage_name(name)
 
         @database.delete(table_name, create_grn_query(query))
         1
@@ -207,5 +243,7 @@ module DataMapper
       end
 
     end # DataMapper::Adapters::GroongaAdapter
+
+    const_added(:GroongaAdapter)
   end
 end

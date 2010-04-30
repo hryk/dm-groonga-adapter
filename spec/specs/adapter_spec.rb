@@ -16,10 +16,12 @@ describe "local_index adapter" do
     end
   end
 
+  it_should_behave_like "migrations"
   it_should_behave_like "as adapter"
 end
 
 describe "remote_index adapter" do
   def index_path;remote_groonga_path;end
+  it_should_behave_like "migrations"
   it_should_behave_like "as adapter"
 end

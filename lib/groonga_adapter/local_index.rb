@@ -76,7 +76,7 @@ module DataMapper
       end
 
       def exist_table(table_name)
-        if @binding_version >= 95
+        if !@binding_version.nil? and @binding_version >= 95
           if @context[table_name].nil?
             return false
           else
@@ -96,14 +96,15 @@ module DataMapper
       end
 
       def open_table(table_name)
-        if @binding_version >= 95
+        if !@binding_version.nil? and @binding_version >= 95
             @context[table_name]
         else
           Groonga::Hash.open(:name => table_name)
         end
       end
 
-      def create_table(table_name, properties, key_prop=nil)
+      def create_table(table_name, properties)
+        key_prop = properties.key.first
         key_type = (key_prop.nil?) ? Groonga::Type::UINT64 : trans_type(key_prop.type)
         @tables[table_name] = Groonga::Hash.create(
           :name       => table_name,
@@ -113,12 +114,22 @@ module DataMapper
 
         # add columns
         properties.each do |prop|
-          type = trans_type(prop.type)
-          propname = prop.name.to_s
-          @tables[table_name].define_column(propname, type, {:persistent => true})
-          if type == "ShortText" || type == "Text" || type == "LongText"
-            index_column = add_term(table_name, propname)
-          end
+          create_column(table_name, prop)
+        end
+      end
+
+      def destroy_table(table_name)
+        return true unless exist_table table_name
+        @tables[table_name].remove()
+        true
+      end
+
+      def create_column(table_name, property)
+        type = trans_type(property.type)
+        propname = property.name.to_s
+        @tables[table_name].define_column(propname, type, {:persistent => true})
+        if type == "ShortText" || type == "Text" || type == "LongText"
+          index_column = add_term(table_name, propname)
         end
       end
 
@@ -192,7 +203,7 @@ module DataMapper
 
         if path.exist? && path.file?
           # open database
-          if @binding_version >= 950
+          if !@binding_version.nil? and @binding_version >= 95
             @database = Groonga::Database.new(path.to_s)
           else
             @database = Groonga::Database.open(path.to_s)

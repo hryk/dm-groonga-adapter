@@ -97,15 +97,33 @@ module DataMapper
         end
       end
 
-      def create_table(table_name, properties, key_prop=nil)
+      def create_table(table_name, properties)
+        key_prop = properties.key.first
         key_type = (key_prop.nil?) ? "UInt64" : trans_type(key_prop.type)
         # create table
         res = request "table_create #{table_name} 0 #{key_type}";
         result = GroongaResult::Base.new res
         throw result.err_msg unless result.err_code == 0 || result.err_code == -22
+
         properties.each do |prop|
-          type = trans_type(prop.type)
-          propname = prop.name.to_s
+          create_column(table_name, prop)
+        end
+      end
+
+      def destroy_table(table_name)
+        return true unless exist_table(table_name)
+        res = GroongaResult::Base.new( request "table_remove #{table_name}" )
+        if res.success?
+          return true
+        else
+          throw "Destroy table failed : #{res.inspect} : #{query}"
+        end
+      end
+
+      def create_column(table_name, property)
+          type = trans_type(property.type)
+          propname = property.name.to_s
+
           query = "column_create #{table_name} #{propname} 0 #{type}"
           res = GroongaResult::Base.new(request query)
           err = res.err_code
@@ -117,7 +135,6 @@ module DataMapper
           if type == "ShortText" || type == "Text" || type == "LongText"
             add_term(table_name, propname)
           end
-        end
       end
 
       protected

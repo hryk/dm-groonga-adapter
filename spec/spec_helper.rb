@@ -1,13 +1,11 @@
-require 'rubygems'
-require 'uuidtools'
-require 'dm-core'
-require 'dm-is-searchable'
-
 $LOAD_PATH.unshift(File.dirname(__FILE__))
 $LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '..', 'lib'))
 SPEC_ROOT = Pathname(__FILE__).dirname.expand_path
 
-require 'groonga_adapter'
+require 'rubygems'
+require 'uuidtools'
+require 'dm-core'
+require 'dm-is-searchable'
 require 'spec'
 require 'spec/autorun'
 
