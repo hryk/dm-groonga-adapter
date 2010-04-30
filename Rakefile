@@ -11,7 +11,7 @@ begin
     gem.homepage = "http://hryk.github.com/dm-groonga-adapter"
     gem.authors = ["hiroyuki"]
 
-    gem.add_dependency "groonga", ">= 0.9"
+    gem.add_dependency "rroonga", ">= 0.9.2"
     gem.add_dependency "dm-core", "~> 0.10.2"
     gem.add_dependency "dm-more", "~> 0.10.2"
 

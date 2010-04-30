@@ -9,6 +9,9 @@ module DataMapper
         @context = Groonga::Context.default
         create_or_init_database
         @tables = Mash.new
+        @binding_version = Groonga::BINDINGS_VERSION.inject(0){|r, item|
+          r += item * (10 ** (Groonga::BINDINGS_VERSION.size - Groonga::BINDINGS_VERSION.index(item) - 1))
+        }
         create_or_init_term_table
       end
 
@@ -73,19 +76,31 @@ module DataMapper
       end
 
       def exist_table(table_name)
-        begin
-          Groonga::Hash.open(:name => table_name)
-        rescue Groonga::InvalidArgument
-          return false
-        rescue => e
-          raise e
+        if @binding_version >= 95
+          if @context[table_name].nil?
+            return false
+          else
+            return true
+          end
         else
-          return true
+          begin
+            Groonga::Hash.open(:name => table_name)
+          rescue Groonga::InvalidArgument
+            return false
+          rescue => e
+            raise e
+          else
+            return true
+          end
         end
       end
 
       def open_table(table_name)
-        @tables[table_name] = Groonga::Hash.open(:name => table_name)
+        if @binding_version >= 95
+            @context[table_name]
+        else
+          Groonga::Hash.open(:name => table_name)
+        end
       end
 
       def create_table(table_name, properties, key_prop=nil)
@@ -177,7 +192,11 @@ module DataMapper
 
         if path.exist? && path.file?
           # open database
-          @database = Groonga::Database.open(path.to_s)
+          if @binding_version >= 950
+            @database = Groonga::Database.new(path.to_s)
+          else
+            @database = Groonga::Database.open(path.to_s)
+          end
         else
           # check directory.
           unless path.dirname.directory?
