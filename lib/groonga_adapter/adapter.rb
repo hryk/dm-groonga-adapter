@@ -53,7 +53,6 @@ module DataMapper
 #            properties[property] = bind_value
 #          end
 #
-#          $stderr.puts properties
 #          (affected_rows, insert_id) = @database.add(model, properties, serial)
 #
 #          if affected_rows == 1 && serial
@@ -133,15 +132,24 @@ module DataMapper
       #     :near
       def search(model, groonga_query, groonga_sort=[], query_option={})
         results = {}
+
         groonga_sort = unless groonga_sort.empty?
                          groonga_sort
                        else
                          default_groonga_sort
                        end
-        @database.search(model.to_s, groonga_query, groonga_sort, query_option).each do |doc| 
+
+        table_name = unless model.is_a? String
+                       model.storage_name(name)
+                     else
+                       Object.const_get(model.to_sym).storage_name(name)
+                     end
+
+        @database.search(table_name, groonga_query, groonga_sort, query_option).each do |doc| 
           resources = results[Object.const_get(model.to_s)] ||= []
           resources << doc[:_key]
         end
+
         results
       end
 
