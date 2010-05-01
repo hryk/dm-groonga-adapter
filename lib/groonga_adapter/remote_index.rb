@@ -4,6 +4,7 @@ require 'nkf'
 module DataMapper
   module Adapters
     class GroongaAdapter::RemoteIndex
+      extend Deprecate
       attr_accessor :logger
       attr_accessor :context
 
@@ -11,7 +12,15 @@ module DataMapper
         @context = Groonga::Context.default
         @context.connect(:host => options[:host], :port => options[:port])
         @jsonbuilder = JsonBuilder.new
-        # request "status" # <- TODO check connection with status command
+        status = GroongaResult::Status.new( request "status" )
+
+        unless status.success?
+          throw status.err_msg
+        else
+          @grn_version = status.version
+        end
+
+        self
       end
 
       def add(table_name, doc)
@@ -160,12 +169,6 @@ module DataMapper
         json
       end
 
-      def err_code(res)
-        return if res.nil?
-        code = res[0][0]
-        code
-      end
-
       def trans_type(dmtype)
         case dmtype.to_s
         when 'String'
@@ -198,10 +201,10 @@ module DataMapper
         end
       end
 
-
       def create_term_table(table_name, key_prop="ShortText", tokenizer="TokenBigram")
         res = request "table_create #{table_name} TABLE_PAT_KEY|KEY_NORMALIZE #{key_prop} Void #{tokenizer}"
-        throw "Fale to create term table." unless err_code(res) == 0 || err_code(res) == -22
+        result = GroongaResult::Base.new res
+        throw "Fale to create term table." unless result.err_code == 0 || result.err_code == -22
         true
       end
 
@@ -220,9 +223,9 @@ module DataMapper
 
       def request(message)
         @context.send message
-        self.logger.debug "Query: " + message
+        @logger.debug( "Query: " + message ) if !@logger.nil?
         id, result = @context.receive
-        self.logger.debug "Result: " + result
+        @logger.debug( "Result: " + result ) if !@logger.nil?
         if result == 'true'
           true
         elsif result == 'false'
@@ -247,20 +250,7 @@ module DataMapper
   end # module Adapters
 end # module DataMapper
 
-
 __END__
-
-def test_send
-  _context = Groonga::Context.new
-  _context.connect(:host => @host, :port => @port)
-  assert_equal(0, _context.send("status"))
-  id, result = _context.receive
-  assert_equal(0, id)
-  status, values = JSON.load(result)
-  return_code, start_time, elapsed,  = status
-  assert_equal([0, ["alloc_count", "starttime", "uptime"]],
-               [return_code, values.keys.sort])
-end
 
 Commands
 

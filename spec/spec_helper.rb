@@ -10,7 +10,6 @@ require 'spec'
 require 'spec/autorun'
 
 (Pathname.new(__FILE__).parent + "shared").children.grep(/\.rb$/).each do |example|
-  puts example
   require example
 end
 

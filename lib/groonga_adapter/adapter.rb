@@ -13,10 +13,10 @@ module DataMapper
         super
         Groonga::Context.default = nil      # Reset Groonga::Context
         @database = if @options[:port].nil? # if port is nil, use local index.
-                   LocalIndex.new(@options)
-                 else
-                   RemoteIndex.new(@options)
-                 end
+                      LocalIndex.new(@options)
+                    else
+                      RemoteIndex.new(@options)
+                    end
         @database.logger = ::DataMapper.logger
       end
 
