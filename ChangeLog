@@ -1,0 +1,6 @@
+2010-05-01  hryk <storage.hn@gmail.com>
+
+	* Removed $KCODE in adapter
+	* Added auto_migration! and auto_upgrade! support
+	* Removed err_code() from remote_index.rb
+	* Upgraded groonga ruby binding to version 0.9.4 (rroonga)

@@ -1,4 +1,3 @@
-$KCODE = "UTF-8"
 module DataMapper
   module Adapters
     class GroongaAdapter::LocalIndex
