@@ -1,5 +1,6 @@
 2010-05-01  hryk <storage.hn@gmail.com>
 
+	* Added tokenizer option.
 	* Removed $KCODE in adapter
 	* Added auto_migration! and auto_upgrade! support
 	* Removed err_code() from remote_index.rb

@@ -5,6 +5,11 @@ module DataMapper
 
       def initialize(options)
         @options = options
+        @tokenizer = if options.key? :tokenizer
+                       options[:tokenizer]
+                     else
+                       "TokenBigram"
+                     end
         @context = Groonga::Context.default
         create_or_init_database
         @tables = Mash.new
@@ -187,10 +192,10 @@ module DataMapper
 
       def create_or_init_term_table
         unless exist_table('DMGterms')
-          @tables['DMGterms'] = Groonga::Hash.create(:name       => "DMGterms",
-                                                   :persistent => true,
-                                                   :key_type   => Groonga::Type::UINT64,
-                                                   :default_tokenizer => "TokenBigram")
+          @tables['DMGterms'] = Groonga::Hash.create(:name              => "DMGterms",
+                                                     :persistent        => true,
+                                                     :key_type          => Groonga::Type::UINT64,
+                                                     :default_tokenizer => @tokenizer)
         else
           open_table('DMGterms')
         end

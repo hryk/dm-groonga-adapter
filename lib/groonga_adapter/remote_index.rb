@@ -9,6 +9,12 @@ module DataMapper
       attr_accessor :context
 
       def initialize(options)
+#        $stderr.puts options.inspect
+        @tokenizer = if options.key? :tokenizer
+                       options[:tokenizer]
+                     else
+                       "TokenBigram"
+                     end
         @context = Groonga::Context.default
         @context.connect(:host => options[:host], :port => options[:port])
         @jsonbuilder = JsonBuilder.new
@@ -201,8 +207,8 @@ module DataMapper
         end
       end
 
-      def create_term_table(table_name, key_prop="ShortText", tokenizer="TokenBigram")
-        res = request "table_create #{table_name} TABLE_PAT_KEY|KEY_NORMALIZE #{key_prop} Void #{tokenizer}"
+      def create_term_table(table_name, key_prop="ShortText")
+        res = request "table_create #{table_name} TABLE_PAT_KEY|KEY_NORMALIZE #{key_prop} Void #{@tokenizer}"
         result = GroongaResult::Base.new res
         throw "Fale to create term table." unless result.err_code == 0 || result.err_code == -22
         true

@@ -33,10 +33,10 @@ HAS_MYSQL    = load_driver(:mysql,    'mysql://localhost/dm_core_test')
 HAS_POSTGRES = load_driver(:postgres, 'postgres://postgres@localhost/dm_core_test')
 
 def local_groonga_path
-  Pathname(SPEC_ROOT) + 'test/index'
+  Pathname(SPEC_ROOT) + 'test/index?tokenizer=TokenBigram'
 end
 def remote_groonga_path
-  ENV["DM_GRN_URL"] || "127.0.0.1:10041" # "192.168.81.132:8888" <- 1.4.0
+  ENV["DM_GRN_URL"] || "127.0.0.1:10041?tokenizer=TokenBigram" # "192.168.81.132:8888" <- 1.4.0
 end
 
 # Spec::Runner.configure do |config|
