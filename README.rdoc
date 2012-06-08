@@ -10,9 +10,9 @@ gem install dm-groonga-adapter
 
 == Dependencies
 
-* groonga (ruby binding) >= 0.9.1
-* dm-core >= 0.10.0
-* dm-more >= 0.10.0
+* rroonga (ruby binding) ~> 2.0.4
+* dm-core ~> 1.2.0
+* dm-more ~> 1.2.0
 
 == Setup Repository
 
