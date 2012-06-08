@@ -1,3 +1,4 @@
+# encoding: utf-8
 shared_examples_for 'as is_search plugin' do
 
   before(:each) do

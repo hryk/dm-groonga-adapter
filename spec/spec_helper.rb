@@ -1,3 +1,4 @@
+# encoding: utf-8
 $LOAD_PATH.unshift(File.dirname(__FILE__))
 $LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '..', 'lib'))
 SPEC_ROOT = Pathname(__FILE__).dirname.expand_path
@@ -6,8 +7,9 @@ require 'rubygems'
 require 'uuidtools'
 require 'dm-core'
 require 'dm-is-searchable'
-require 'spec'
-require 'spec/autorun'
+require 'simplecov'
+
+SimpleCov.start
 
 (Pathname.new(__FILE__).parent + "shared").children.grep(/\.rb$/).each do |example|
   require example
